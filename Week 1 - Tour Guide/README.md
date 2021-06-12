@@ -1,24 +1,13 @@
-# leaflet
+# How to use plugins
 
-## Project setup
+## Install plugin
 ```
-yarn install
-```
-
-### Compiles and hot-reloads for development
-```
-yarn serve
+npm install
+npm install cors
+npm install express
 ```
 
-### Compiles and minifies for production
+### Compile plugin
 ```
-yarn build
+node app.js
 ```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).

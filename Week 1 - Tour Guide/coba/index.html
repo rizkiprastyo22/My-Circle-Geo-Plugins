@@ -1,0 +1,176 @@
+<div class="bg-white" id="indexing">
+
+  <!-- Data Geojson -->
+  <script type="application/javascript">
+    var lineJson = { "type": "FeatureCollection", "features": [{ "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[116.53610229492188, -8.34467058872437], [116.45919799804688, -8.40580962752306], [116.33697509765625, -8.528058719894872], [116.29165649414062, -8.829438169791649], [116.16256713867188, -8.867432686968076]] } }] }
+  </script>
+  <script type="application/javascript">
+    var lineJson2 = { "type": "FeatureCollection", "features": [{ "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[116.04034423828125, -8.350105558516734], [116.45782470703125, -8.415319280066617], [116.290283203125, -8.82808115026189], [116.83135986328125, -8.48867158917733], [117.74322509765624, -8.105457731284295]] } }] }
+  </script>
+  <script type="application/javascript">
+    var lineJson3 = { "type": "FeatureCollection", "features": [{ "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[116.12548828124999, -7.819847426192575], [116.83135986328125, -8.48867158917733], [116.597900390625, -8.855220591440938], [116.28753662109375, -8.82808115026189], [116.02935791015624, -8.72493311456926]] } }] }
+  </script>
+
+  <!-- Leaflet -->
+  <script type="application/javascript">
+
+    // cara dapet Map
+    var map = window.globalMap;
+    var layergroup = L.layerGroup().addTo(map);
+    map.setView([-8.61339434584095, 117.50156661068488], 9);
+
+    /*==============================================
+                        DATA
+    ================================================*/
+    var coordinate = [
+      [-8.529466864432326, 116.33667401249023],
+      [-8.410233608507378, 116.45730583429604],
+      [-8.872229213678052, 116.16248126506679],
+      [-8.83227786599683, 116.29152454425602],
+      [-8.345158828413842, 116.53305992558127],
+      [-8.347251994225653, 116.03830895135641],
+      [-8.110500206927508, 117.74600411660731],
+      [-8.491053983194039, 116.83082409267409],
+      [-7.823110399434683, 116.12472167397377],
+      [-8.729097716923484, 116.02562562141229],
+      [-8.860521513410017, 116.5945730957474]
+    ];
+    var destination = [
+      ["Air Terjun Benang Kelambu"],
+      ["Gunung Rinjani"],
+      ["Pantai Selong Belanak"],
+      ["Dusun Sade"],
+      ["Bukit Pergasingan"],
+      ["Gili Trawangan"],
+      ["Pulau Satonde"],
+      ["Pantai Pulau Kenawa"],
+      ["Taman Narmada"],
+      ["Gili Kedis"],
+      ["Tanjung Ringgit"]
+    ];
+
+    for (let i = 0; i < coordinate.length; i++) {
+      var popUp = L.popup().setLatLng(coordinate[i]).setContent(`
+            <div class="popContainer">
+                <h4>${destination[i]}</h4>
+            </div>
+            `);
+      var marker = L.marker(coordinate[i]).addTo(layergroup).bindPopup(popUp);
+    }
+
+    /*==============================================
+                    BASEMAP SELECTION
+    ================================================*/
+    // Google Streets
+    var googleStreets = L.tileLayer(
+      "http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+      {
+        maxZoom: 20,
+        subdomains: ["mt0", "mt1", "mt2", "mt3"]
+      }
+    ).addTo(layergroup);
+
+    // Watercolor
+    var watercolor = L.tileLayer(
+      "https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}",
+      {
+        attribution:
+          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: "abcd",
+        minZoom: 1,
+        maxZoom: 16,
+        ext: "jpg"
+      }
+    );
+
+    // OSM layer
+    var osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    // Dark map
+    var dark = L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 19
+      }
+    );
+
+    // Google satellite
+    var googleSat = L.tileLayer(
+      "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+      {
+        maxZoom: 20,
+        subdomains: ["mt0", "mt1", "mt2", "mt3"]
+      }
+    );
+
+    /*==============================================
+                        Ovlerlay
+    ================================================*/
+
+    var lineData = L.geoJSON(lineJson, {
+      onEachFeature: function (feature, layer) {
+        layer.bindPopup(`<b>Jenis Tour: </b> Tour Ekonomis`)
+      },
+      style: {
+        color: '#cd7f32',
+      }
+    }).addTo(layergroup);
+
+    var lineData2 = L.geoJSON(lineJson2, {
+      onEachFeature: function (feature, layer) {
+        layer.bindPopup(`<b>Jenis Tour: </b> Tour Eksklusif`)
+      },
+      style: {
+        color: '#ffa000',
+      }
+    }).addTo(layergroup);
+
+    var lineData3 = L.geoJSON(lineJson3, {
+      onEachFeature: function (feature, layer) {
+        layer.bindPopup(`<b>Jenis Tour: </b> Tour Premium`)
+      },
+      style: {
+        color: '#797a74',
+      }
+    }).addTo(layergroup);
+
+    /*==============================================
+                    LAYER CONTROL
+    ================================================*/
+    var baseMaps = {
+      "Google Street": googleStreets,
+      "Open Street Map": osm,
+      "Dark Mode Map": dark,
+      "Google Satellite": googleSat,
+      "Watercolor Map": watercolor
+    };
+    var overlayMaps = {
+      'Tour Eksklusif': lineData2,
+      'Tour Premium': lineData3,
+      'Tour Ekonomis': lineData
+    };
+
+    // Turn off Tour Premium and Tour Ekonomis
+    map.removeLayer(lineData);
+    map.removeLayer(lineData3);
+
+    L.control
+      .layers(baseMaps, overlayMaps, { collapsed: false })
+      .addTo(window.globalMap);
+
+    // Put zoom control in bottom right
+    L.control
+      .zoom({
+        position: "topleft"
+      })
+      .addTo(window.globalMap);
+
+  </script>
+
+</div>
