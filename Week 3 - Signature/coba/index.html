@@ -1,0 +1,380 @@
+<div class="bg-white" id="indexing">
+  <div style="position:absolute;top:10px;left:10px;">
+
+    <!-- Search box -->
+    <!-- <div>
+      <div class="mt-1 relative rounded-md shadow-sm">
+        <div
+          class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div> -->
+    <input type="text" name="search" id="search"
+      class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 py-1 sm:text-sm border-gray-300 rounded-md"
+      placeholder=" Cari lokasi .." />
+    <!-- <div class="absolute inset-y-0 right-0 flex items-center">
+          <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
+            onclick="search(document.getElementById('search').value)"
+          >
+            Cari
+          </button>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- Hasil -->
+    <!-- <div v-if="list.length > 0" style="position: absolute; left: 15px;">
+        <div
+          v-for="(value, index) in list.slice(0, 8)"
+          :key="index"
+          @click="searchData(value)"
+          style="
+            cursor: pointer;
+            padding: 5px;
+            border: 1px solid #000;
+            margin-top: 5px;
+            background-color: white;
+          "
+        >
+          <div>{{ value.properties.name }}</div>
+          <div>{{ value.properties.region }}, {{ value.properties.country }}</div>
+        </div>
+      </div> -->
+
+  </div>
+  <!-- <script type="application/javascript" src="../coba/us.js"></script> -->
+  <script type="application/javascript">
+    // import usJson from '../coba/us'
+
+    // cara dapet Map
+    var map = window.globalMap;
+    var layergroup = L.layerGroup().addTo(map);
+    map.setView([0, 125], 5);
+
+    /*==============================================
+                        BASEMAP SELECTION
+    ================================================*/
+    // Google Streets
+    var googleStreets = L.tileLayer(
+      "http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+      {
+        maxZoom: 20,
+        subdomains: ["mt0", "mt1", "mt2", "mt3"]
+      }
+    );
+
+    // Watercolor
+    var watercolor = L.tileLayer(
+      "https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}",
+      {
+        attribution:
+          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: "abcd",
+        minZoom: 1,
+        maxZoom: 16,
+        ext: "jpg"
+      }
+    );
+
+    // OSM layer
+    var osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    // Dark map
+    var dark = L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 19
+      }
+    ).addTo(layergroup);
+
+    // Google satellite
+    var googleSat = L.tileLayer(
+      "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+      {
+        maxZoom: 20,
+        subdomains: ["mt0", "mt1", "mt2", "mt3"]
+      }
+    );
+
+    /*==============================================
+                      SIGNATURE
+    ================================================*/
+
+    // require , gk ada..
+    // tidak bisa import dari nodes_modules , dan package yang terinstall
+    // axios, di ganti sama fetch()
+    // kita perlu Map, window.globalMap
+
+    function utcDate(val) {
+      return new Date(
+        Date.UTC(
+          new Date().getFullYear(),
+          new Date().getMonth(),
+          new Date().getDate() + parseInt(val),
+          0,
+          0,
+          0
+        )
+      );
+    }
+
+    var categoryColor = {
+      1: "#FFE922",
+      2: "#FFE922",
+      3: "#FFE922",
+      4: "#FFE922",
+      5: "#FFE922",
+      6: "#FE9900",
+      7: "#FE9900",
+      8: "#FE9900",
+      9: "#FE9900",
+      10: "#CC0033"
+    }
+
+    // https://signature.bmkg.go.id/api/signature/impact/public/higher
+    var time = {}
+
+    fetch('https://signature.bmkg.go.id/api/signature/impact/public/higher', {
+      method: 'GET'
+    })
+      .then(response => response.json())
+      .then(data => {
+        // console.log()
+        // response adalah listtime 
+        time = data.data
+        // get current by today utc
+        var current = new Date(utcDate(0)).toISOString()
+        fetch(`https://signature.bmkg.go.id/api/signature/impact/public/list/${current}`, {
+          method: 'GET'
+        })
+          .then(response => response.json())
+          .then(data => {
+            data.data.forEach(element => {
+              L.geoJSON(element.area, {
+                // pane:"labels",
+                style: function (e) {
+                  return {
+                    fillOpacity: 1,
+                    fillColor: categoryColor[e.properties.category],
+                    weight: 0,
+                  }
+                },
+                onEachFeature: function (feature, layer) {
+                  layer.bindPopup(`<div style="margin-top:20px;margin-bottom:20px;margin-right:15px;">Category Layer : ${feature.properties.category}</div>`, { autoClose: true });
+                }
+              }
+              ).addTo(layergroup)
+            });
+          });
+      });
+
+
+
+
+    /*==============================================
+                        Ovlerlay
+    ================================================*/
+
+    // require , gk ada..
+    // tidak bisa import dari nodes_modules , dan package yang terinstall
+    // axios, di ganti sama fetch()
+    // kita perlu Map, window.globalMap
+
+    // function utcDate(val) {
+    //   return new Date(
+    //       Date.UTC(
+    //           new Date().getFullYear(),
+    //           new Date().getMonth(),
+    //           new Date().getDate() + parseInt(val),
+    //           0,
+    //           0,
+    //           0
+    //       )
+    //   );
+    // }
+
+    // var categoryColor = {
+    //   1: "#FFE922",
+    //   2: "#FFE922",
+    //   3: "#FFE922",
+    //   4: "#FFE922",
+    //   5: "#FFE922",
+    //   6: "#FE9900",
+    //   7: "#FE9900",
+    //   8: "#FE9900",
+    //   9: "#FE9900",
+    //   10: "#CC0033"
+    // }
+
+    // // https://signature.bmkg.go.id/api/signature/impact/public/higher
+    // var time = {}
+
+    // fetch('https://signature.bmkg.go.id/api/signature/impact/public/higher', {
+    //   method: 'GET'
+    // })
+    //   .then(response => response.json())
+    //   .then(data => {
+    //       // console.log()
+    //       // response adalah listtime 
+    //       time = data.data
+    //       // get current by today utc
+    //       var current = new Date(utcDate(0)).toISOString()
+    //       fetch(`https://signature.bmkg.go.id/api/signature/impact/public/list/${current}`, {
+    //           method: 'GET'
+    //       })
+    //           .then(response => response.json())
+    //           .then(data => {
+    //               data.data.forEach(element => {
+    //                   L.geoJSON(element.area, {
+    //                       // pane:"labels",
+    //                       style: function (e) {
+    //                           return {
+    //                               fillOpacity: 1,
+    //                               fillColor: categoryColor[e.properties.category],
+    //                               weight: 0,
+    //                           }
+    //                       },
+    //                       onEachFeature: function (feature, layer) {
+    //                           layer.bindPopup(`<div style="margin-top:20px;margin-bottom:20px;margin-right:15px;">Category Layer : ${feature.properties.category}</div>`, { autoClose: true });
+    //                         }
+    //                   }
+    //                   ).addTo(layergroup)
+    //               });
+    //           });
+    //   });
+
+
+    /*==============================================
+                    LAYER CONTROL
+    ================================================*/
+    var baseMaps = {
+      "Dark Mode Map": dark,
+      "Google Satellite": googleSat,
+      "Open Street Map": osm,
+      "Watercolor Map": watercolor,
+      "Google Street": googleStreets
+    };
+    var overlayMaps = {
+      // "Signature": signature
+      // "Density 50 - 200": usData1,
+      // "Density < 50": usData2
+    };
+
+    // this.map.removeLayer(signature);
+
+    L.control
+      .layers(baseMaps, overlayMaps, { collapsed: false })
+      .addTo(window.globalMap);
+
+    // Put zoom control in bottom right
+    L.control
+      .zoom({
+        position: "bottomright"
+      })
+      .addTo(window.globalMap);
+
+
+    /*==============================================
+                    METHOD
+    ================================================*/
+
+
+  </script>
+  <script type="application/javascript" src="../coba/search.js"></script>
+  <script type="application/javascript">
+    // require , gk ada..
+    // tidak bisa import dari nodes_modules , dan package yang terinstall
+    // axios, di ganti sama fetch()
+    // kita perlu Map, window.globalMap
+
+    function utcDate(val) {
+      return new Date(
+        Date.UTC(
+          new Date().getFullYear(),
+          new Date().getMonth(),
+          new Date().getDate() + parseInt(val),
+          0,
+          0,
+          0
+        )
+      );
+    }
+    // cara dapet Map
+    var map = window.globalMap
+    var layergroup = L.layerGroup().addTo(map)
+    var categoryColor = {
+      1: "#FFE922",
+      2: "#FFE922",
+      3: "#FFE922",
+      4: "#FFE922",
+      5: "#FFE922",
+      6: "#FE9900",
+      7: "#FE9900",
+      8: "#FE9900",
+      9: "#FE9900",
+      10: "#CC0033"
+    }
+
+    console.log(window)
+
+    // https://signature.bmkg.go.id/api/signature/impact/public/higher
+    var time = {}
+
+    fetch('https://signature.bmkg.go.id/api/signature/impact/public/higher', {
+      method: 'GET'
+    })
+      .then(response => response.json())
+      .then(data => {
+        // console.log()
+        // response adalah listtime 
+        time = data.data
+        // get current by today utc
+        var current = new Date(utcDate(0)).toISOString()
+        fetch(`https://signature.bmkg.go.id/api/signature/impact/public/list/${current}`, {
+          method: 'GET'
+        })
+          .then(response => response.json())
+          .then(data => {
+            data.data.forEach(element => {
+              L.geoJSON(element.area, {
+                // pane:"labels",
+                style: function (e) {
+                  return {
+                    fillOpacity: 1,
+                    fillColor: categoryColor[e.properties.category],
+                    weight: 0,
+                  }
+                },
+                onEachFeature: function (feature, layer) {
+                  layer.bindPopup(`<div style="margin-top:20px;margin-bottom:20px;margin-right:15px;">Category Layer : ${feature.properties.category}</div>`, { autoClose: true });
+                }
+              }
+              ).addTo(layergroup)
+            });
+          });
+      });
+
+
+
+  </script>
+</div>
