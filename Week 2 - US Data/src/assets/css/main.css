@@ -1,0 +1,9 @@
+#app {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.square-rad{
+    border-radius: 10px;
+    background-color: black;
+    width: 100%;
+}

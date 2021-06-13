@@ -49,10 +49,25 @@
       ["Tanjung Ringgit"]
     ];
 
+
+    // var images = [
+    //         "images/air-terjun-benang-kelambu.jpg",
+    //         "images/gunung-rinjani.jpg",
+    //         "images/pantai-selong-belanak.jpg",
+    //         "images/dusun-sade.jpg",
+    //         "images/pergasingan.jpg",
+    //         "images/gili-trawangan.jpg",
+    //         "images/pulau-satonde.jpg",
+    //         "images/pulau-kenawa.jpeg",
+    //         "images/taman-narmada.jpg",
+    //         "images/gili-kedis.jpeg",
+    //         "images/tanjung-ringgit.jpg"
+    //     ];
+
     for (let i = 0; i < coordinate.length; i++) {
       var popUp = L.popup().setLatLng(coordinate[i]).setContent(`
             <div class="popContainer">
-                <h4>${destination[i]}</h4>
+              <h4>${destination[i]}</h4>
             </div>
             `);
       var marker = L.marker(coordinate[i]).addTo(layergroup).bindPopup(popUp);
