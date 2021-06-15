@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    HELLO
+</body>
+<script>
+    let request = new XMLHttpRequest();
+
+    request.open('POST', "https://api.openrouteservice.org/v2/isochrones/driving-car");
+
+    request.setRequestHeader('Accept', 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8');
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.setRequestHeader('Authorization', '5b3ce3597851110001cf6248b270d4cb28b649d29ae88233bfeb11e0');
+    
+    const body = '{"locations":[[110.37313501406109,-7.763440484516543]],"range":[300,150]}';
+
+    request.onreadystatechange = function () {
+    if (this.readyState === 4) {
+        // console.log('Status:', this.status);
+        // console.log('Headers:', this.getAllResponseHeaders());
+        console.log('Body:', this.responseText);
+    }
+    };
+
+    request.send(body);
+</script>
+</html>
