@@ -10,7 +10,7 @@ app.use(cors());
 // app.use('/public', express.static(__dirname + '/public'));
 // sendFile will go here
 app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, '../Week 4 - Isochrone/coba/index.html'));
+  res.sendFile(path.join(__dirname, '../Week 4.1 - input/coba/index.html'));
 });
 
 app.listen(port);
