@@ -1,0 +1,198 @@
+<div class="bg-white" id="indexing">
+
+  <div style="position:absolute;top:10px;left:10px;">
+    <form style="background-color: white; height: 200px; width: 250px; border: 1px solid black;"">
+      <div style="position:absolute;top:10px;left:15px;">
+        <label for="distance">Distance</label><br>
+        <input id="myNumber3" class="rounded-lg overflow-hidden appearance-none bg-gray-400 h-3 w-128" type="range"
+          min="1" max="10" step="1" value="4" onchange="updateTextInput(this.value);"
+          oninput="updateTextInput(this.value)" />
+        <input type="number" id="textInput" value="4" style="width: 55px; padding: 4px 10px 1px 10px;" onchange="updateTextInput3(this.value);"
+        oninput="updateTextInput3(this.value)">km
+      </div>
+      <div style="position:absolute;top:70px;left:15px;">
+        <label for="interval">Interval</label><br>
+        <input id="myNumber4" class="rounded-lg overflow-hidden appearance-none bg-gray-400 h-3 w-128" type="range"
+          min="1" max="10" step="1" value="2" onchange="updateTextInput2(this.value);"
+          oninput="updateTextInput2(this.value)" />
+        <input type="number" id="textInput2" value="2" style="width: 55px; padding: 4px 10px 1px 10px;" onchange="updateTextInput4(this.value);"
+        oninput="updateTextInput4(this.value)">km
+      </div>
+      <button type="button" id="btnmyNumber"
+        style="position:absolute;top:150px;left:15px; padding: 2px 10px; border: 1px solid black; color: white; background-color: #25b0a2;">Generate
+        Isochrone
+      </button>
+    </form>
+</div>
+
+<div style="position:absolute;bottom:10px;left:10px;">
+  <input type="decimal" id="myNumber" style="padding: 2px 10px;" placeholder="Longitude (click map)" readonly>
+  <input type="decimal" id="myNumber2" style="padding: 2px 10px;" placeholder="Lattitude (click map)" readonly>
+</div>
+
+<script type="application/javascript">
+
+  // cara dapet Map
+  var map = window.globalMap;
+  var layergroup = L.layerGroup().addTo(map);
+  // var newMarker = null;
+  map.setView([-7.781326951469919, 110.19806351118889], 15);
+
+  function updateTextInput(val) {
+    document.getElementById('textInput').value = val;
+  }
+
+  function updateTextInput2(val) {
+    document.getElementById('textInput2').value = val;
+  }
+
+  function updateTextInput3(val) {
+    document.getElementById('myNumber3').value = val;
+  }
+
+  function updateTextInput4(val) {
+    document.getElementById('myNumber4').value = val;
+  }
+
+  /*==============================================
+                  BASEMAP SELECTION
+  ================================================*/
+  // Google Streets
+  var googleStreets = L.tileLayer(
+    "http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+    {
+      // minZoom: 15,
+      maxZoom: 20,
+      subdomains: ["mt0", "mt1", "mt2", "mt3"]
+    }
+  ).addTo(layergroup);
+
+  // OSM layer
+  var osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    // minZoom: 15,
+    maxZoom: 20
+  });
+
+  // Dark map
+  var dark = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      // minZoom: 15,
+      maxZoom: 20
+    }
+  );
+
+  // Google satellite
+  var googleSat = L.tileLayer(
+    "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+    {
+      // minZoom: 15,
+      maxZoom: 20,
+      subdomains: ["mt0", "mt1", "mt2", "mt3"]
+    }
+  );
+
+  /*==============================================
+                    Map Click
+  ================================================*/
+  map.on('click', addMarker);
+  var marker;
+
+  function addMarker(e) {
+    //remove previous markers
+    if (marker) {
+      map.removeLayer(marker);
+    }
+    marker = new L.marker(e.latlng).addTo(layergroup);
+    document.getElementById("myNumber").value = e.latlng.lng;
+    document.getElementById("myNumber2").value = e.latlng.lat;
+  };
+
+  /*==============================================
+                    Get Isochrone
+  ================================================*/
+  var el = document.getElementById("btnmyNumber")
+  if (el) {
+    el.addEventListener('click', myFunctionVar);
+    function myFunctionVar() {
+      var number = document.getElementById("myNumber").value;
+      var number2 = document.getElementById("myNumber2").value;
+      var number3 = document.getElementById("myNumber3").value;
+      var number4 = document.getElementById("myNumber4").value;
+
+      // map.setView([number2, number], 15);
+
+      const body = { "locations": [[number, number2]], "range": [number3*1000], "interval": number4*1000, "range_type": 'distance' };
+
+      fetch("https://api.openrouteservice.org/v2/isochrones/driving-car", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '5b3ce3597851110001cf6248b270d4cb28b649d29ae88233bfeb11e0'
+        },
+        body: JSON.stringify(body)
+      })
+        .then(response => response.json())
+        .then((res) => {
+          // if (layerGroup) {
+          //   layerGroup.remove()
+          // }
+          // layerGroup = L.layerGroup().addTo(maps);
+          var kosJson = res;
+          L.geoJSON(kosJson, {
+            style(e) {
+              return {
+                fillColor: '#007065',
+                fillOpacity: 0.1,
+                color: 'black',
+                weight: 0.2
+              }
+            },
+          }).addTo(layergroup);
+        });
+    }
+  }
+
+  /*==============================================
+                    Ovlerlay
+  ================================================*/
+  // var kosData = L.geoJSON(kosJson, {
+  //     onEachFeature: function (feature, layer) {
+  //       layer.bindPopup(`5 menit dari kos`)
+  //     },
+  //     style: this.styling
+  // }).addTo(layergroup);
+
+  /*==============================================
+                  LAYER CONTROL
+  ================================================*/
+  var baseMaps = {
+    "Google Street": googleStreets,
+    "Open Street Map": osm,
+    "Dark Mode Map": dark,
+    "Google Satellite": googleSat
+  };
+  var overlayMaps = {
+    // "5 menit dari kos": kosData
+  };
+
+  // this.map.removeLayer(kosData);
+
+  L.control
+    .layers(baseMaps, overlayMaps, { collapsed: false })
+    .addTo(window.globalMap);
+
+  // Put zoom control in bottom right
+  L.control
+    .zoom({
+      position: "bottomright"
+    })
+    .addTo(window.globalMap);
+
+</script>
+</div>
